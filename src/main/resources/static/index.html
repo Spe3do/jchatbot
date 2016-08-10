@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello WebSocket</title>
+    <script src="sockjs-0.3.4.js"></script>
+    <script src="stomp.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+        var name = null;
+
+        function setConnected(connected) {
+            document.getElementById('connect').disabled = connected;
+            document.getElementById('disconnect').disabled = !connected;
+            document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+            document.getElementById('response').innerHTML = '';
+        }
+
+        function connect() {
+        	var lname = document.getElementById('name').value;
+
+        	if(lname.length != 0) {
+        		name = lname;
+	        	var socket = new SockJS('/message');
+	            stompClient = Stomp.over(socket);
+	            stompClient.connect({}, function(frame) {
+	                setConnected(true);
+	                console.log('Connected: ' + frame);
+	                stompClient.subscribe('/topic/messages', function(greeting){
+	                	var name = JSON.parse(greeting.body).name;
+	                	var content = JSON.parse(greeting.body).content
+	                	var dateTime = new Date(JSON.parse(greeting.body).dateTime).toISOString().slice(0, 19);
+	                    showGreeting(name, content, dateTime);
+	                });
+	            });
+
+	            document.getElementById('content').onkeypress = function(e) {
+	                var event = e || window.event;
+	                var charCode = event.which || event.keyCode;
+
+	                if ( charCode == '13' ) {
+	                  sendName();
+	                  return false;
+	                }
+	            }
+        	}
+        }
+
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function sendName() {
+            var content = document.getElementById('content').value;
+            stompClient.send("/app/message", {}, JSON.stringify({ 'name': name, 'content':content}));
+            document.getElementById('content').value = '';
+        }
+
+        function showGreeting(name, message, datetime) {
+            var response = document.getElementById('response');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode('('+datetime+') '+ name+': '+message));
+            response.appendChild(p);
+        }
+    </script>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
+<div>
+    <div>
+    	<label>What is your name?</label><input type="text" id="name" />
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+    </div>
+    <div id="conversationDiv">
+	        <label>What do you want to say?</label><input type="text" id="content" />
+	        <button id="sendName" onclick="sendName();">Send</button>
+        <p id="response"></p>
+    </div>
+</div>
+</body>
+</html>
