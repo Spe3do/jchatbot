@@ -1,0 +1,10 @@
+html,body {
+	height: 100%
+}
+
+#conversationDiv{
+	width: 100%;
+}
+#response{
+	height:80%;
+}

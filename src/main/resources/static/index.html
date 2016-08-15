@@ -2,8 +2,12 @@
 <html>
 <head>
     <title>Hello WebSocket</title>
+	<link href="bootstrap.min.css" rel="stylesheet" />
+	<link href="main.css" rel="stylesheet"/>
     <script src="sockjs-0.3.4.js"></script>
     <script src="stomp.js"></script>
+	<script src="jquery-3.1.0.min.js"></script>
+	<script src="bootstrap.min.js"></script>
     <script type="text/javascript">
         var stompClient = null;
         var name = null;
@@ -11,7 +15,8 @@
         function setConnected(connected) {
             document.getElementById('connect').disabled = connected;
             document.getElementById('disconnect').disabled = !connected;
-            document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+            document.getElementById('chatApplication').style.display = connected ? '' : 'none';
+            document.getElementById('login').style.display = connected ? 'none' : '';
             document.getElementById('response').innerHTML = '';
         }
 
@@ -45,6 +50,14 @@
         	}
         }
 
+        String.prototype.normalizespace = function () {
+        	return this.replace(/[\s/]+/g, ' ');
+        }
+
+        String.prototype.killwhitespace = function () {
+        	return this.replace(/\s/g, '');
+        }
+
         function disconnect() {
             if (stompClient != null) {
                 stompClient.disconnect();
@@ -55,8 +68,12 @@
 
         function sendName() {
             var content = document.getElementById('content').value;
-            stompClient.send("/app/message", {}, JSON.stringify({ 'name': name, 'content':content}));
-            document.getElementById('content').value = '';
+            if(content.killwhitespace().length != 0){
+	            stompClient.send("/app/message", {}, JSON.stringify({ 'name': name, 'content':content.normalizespace()}));
+	            document.getElementById('content').value = '';
+        	} else {
+        		document.getElementById('content').value = '';
+        	}
         }
 
         function showGreeting(name, message, datetime) {
@@ -65,6 +82,13 @@
             p.style.wordWrap = 'break-word';
             p.appendChild(document.createTextNode('('+datetime+') '+ name+': '+message));
             response.appendChild(p);
+            scrollToNewestMessage();
+        }
+
+        function scrollToNewestMessage() {
+        	var messagesDiv = $('#response');
+        	var height = messagesDiv[0].scrollHeight;
+        	messagesDiv.scrollTop(height);
         }
     </script>
 </head>
@@ -72,16 +96,24 @@
 <noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being enabled. Please enable
     Javascript and reload this page!</h2></noscript>
 <div>
-    <div>
+    <div id="login">
     	<label>What is your name?</label><input type="text" id="name" />
         <button id="connect" onclick="connect();">Connect</button>
         <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
     </div>
-    <div id="conversationDiv">
-	        <label>What do you want to say?</label><input type="text" id="content" />
-	        <button id="sendName" onclick="sendName();">Send</button>
-        <p id="response"></p>
-    </div>
+    <div id="chatApplication">
+	    <div class="col-md-10">
+		    <div class="well well-sm pre-scrollable" id="response"></div>
+		    <div id="conversationDiv">
+				<input type="text" id="content" />
+				<button id="sendName" onclick="sendName();">Send</button>
+		    </div>
+	    </div>
+	    <div class="col-md-2">
+			<p>Connected Users</p>
+			<ul id="connectedUsers"></ul>
+	    </div>
+	 </div>
 </div>
 </body>
 </html>
