@@ -79,8 +79,18 @@
         function showGreeting(name, message, datetime) {
             var response = document.getElementById('response');
             var p = document.createElement('p');
+            var div = document.createElement('div');
             p.style.wordWrap = 'break-word';
-            p.appendChild(document.createTextNode('('+datetime+') '+ name+': '+message));
+            var h5 = document.createElement('h5');
+            h5.appendChild(document.createTextNode(name+':'));
+            
+            var date = document.createElement('div');
+            date.appendChild(document.createTextNode(datetime));
+            
+            div.appendChild(date);
+            div.appendChild(h5);
+            div.appendChild(document.createTextNode(message));
+            p.appendChild(div);
             response.appendChild(p);
             scrollToNewestMessage();
         }
@@ -96,23 +106,36 @@
 <noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being enabled. Please enable
     Javascript and reload this page!</h2></noscript>
 <div>
+    <nav class="navbar navbar-default navbar-fixed-top">
+	  <div class="container">
+		<h3>Jchatbot</h3>
+	  </div>
+	</nav>
     <div id="login">
     	<label>What is your name?</label><input type="text" id="name" />
         <button id="connect" onclick="connect();">Connect</button>
         <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
     </div>
-    <div id="chatApplication">
-	    <div class="col-md-10">
-		    <div class="well well-sm pre-scrollable" id="response"></div>
-		    <div id="conversationDiv">
-				<input type="text" id="content" />
-				<button id="sendName" onclick="sendName();">Send</button>
+    <div id="chatApplication" class="container-fluid">
+	    <div class="row">
+		    <div class="col-md-10">
+			    <div class="well well-sm pre-scrollable" id="response"></div>
+		    </div>
+		    <div class="col-md-2">
+				<p>Connected Users</p>
+				<ul id="connectedUsers"></ul>
 		    </div>
 	    </div>
-	    <div class="col-md-2">
-			<p>Connected Users</p>
-			<ul id="connectedUsers"></ul>
-	    </div>
+	    <div class="row">
+		    <div class="col-md-10">
+			    <div class="input-group">
+			      <input id="content" type="text" class="form-control">
+			      <span class="input-group-btn">
+			        <button class="btn btn-default" type="button" onclick="sendName()">Send</button>
+			      </span>
+			    </div><!-- /input-group -->
+			  </div><!-- /.col-lg-6 -->
+		</div>
 	 </div>
 </div>
 </body>
